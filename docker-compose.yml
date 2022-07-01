@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+
+  postfix-relay:
+    build: 
+      context: ./dockerfiles/postfix-relay 
+    hostname: postfix-relay
+    restart: always
+    ports:
+      - ${IPV4_NETWORK:?err}.1:25:25
+      - ${IPV4_NETWORK:?err}.1:587:587
+    environment:
+      MAILNAME: ${MAILNAME:-}
+      RELAYHOST: ${RELAYHOST:-}
+      RSPAMD: ${RSPAMD:-}
+      TZ: ${TZ:-}
+    dns:
+      - ${DNS_SERVER1:-}
+      - ${DNS_SERVER2:-}
+    networks:
+      service-network:
+
+
+  rspamd-controller:
+    build:
+      context: ./dockerfiles/rspamd-controller
+    hostname: rspamd-controller
+    restart: always
+    environment:
+      TZ: ${TZ:-}
+    networks:
+      service-network:
+
+networks:
+  service-network:
+    driver: bridge
+    enable_ipv6: false
+    ipam:
+      driver: default
+      config:
+        - subnet: ${IPV4_NETWORK:?err}.0/24
