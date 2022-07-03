@@ -5,16 +5,18 @@ services:
   postfix-relay:
     build: 
       context: ./dockerfiles/postfix-relay 
+    container_name: postfix-relay
     hostname: postfix-relay
     restart: always
     ports:
       - ${IPV4_NETWORK:?err}.1:25:25
       - ${IPV4_NETWORK:?err}.1:587:587
     environment:
-      MAILNAME: ${MAILNAME:-}
-      RELAYHOST: ${RELAYHOST:-}
-      RSPAMD: ${RSPAMD:-}
-      TZ: ${TZ:-}
+      - MAILNAME=${MAIL_DOMAIN:-}
+      - RELAYHOST=${RELAYHOST:-}
+      - RSPAMD_SERVICE=${RSPAMD_SERVICE:-}
+      - TZ=${TIMEZONE:-}
+      - DEBUG=${DEBUG:-false}
     dns:
       - ${DNS_SERVER1:-}
       - ${DNS_SERVER2:-}
@@ -22,15 +24,57 @@ services:
       service-network:
 
 
-  rspamd-controller:
-    build:
-      context: ./dockerfiles/rspamd-controller
-    hostname: rspamd-controller
+  rspamd-proxy:
+    image: tiredofit/rspamd:1.3.16
+    container_name: rspamd-proxy
+    hostname: rspamd-proxy
     restart: always
+    ports: 
+      - ${IPV4_NETWORK:?err}.1:80:11334
     environment:
-      TZ: ${TZ:-}
+      - METRICS_GREYLIST=${METRICS_GREYLIST:-}
+      - METRICS_ADD_HEADER=${METRICS_ADD_HEADER:-}
+      - METRICS_REWRITE_SUBJECT=${METRICS_REWRITE_SUBJECT:-}
+      - METRICS_REJECT=${METRICS_REJECT:-}
+      #
+      - ENABLE_GREYLIST=${ENABLE_GREYLIST:-false} 
+      - ENABLE_RATELIMITING=${ENABLE_RATELIMITING:-false} 
+      #
+      - ENABLE_OLETOOLS=${ENABLE_OLETOOLS:-false} 
+      #
+      - ENABLE_ANTIVIRUS=${ENABLE_ANTIVIRUS:-false}
+      - CLAMAV_HOST=${CLAMAV_HOST:-clamav}
+      - CLAMAV_PORT=${CLAMAV_PORT:-3310}
+    dns:
+      - ${DNS_SERVER1:-}
+      - ${DNS_SERVER2:-}
     networks:
       service-network:
+
+
+  rspamd-redis:
+    image: redis:6.2.7-bullseye
+    container_name: rspamd-redis
+    restart: always
+    dns:
+      - ${DNS_SERVER1:-}
+      - ${DNS_SERVER2:-}
+    networks:
+      service-network:
+
+
+  clam-av:
+    image: clamav/clamav
+    container_name: clam-av
+    restart: always
+    dns:
+      - ${DNS_SERVER1:-}
+      - ${DNS_SERVER2:-}
+    networks:
+      service-network:
+
+
+
 
 networks:
   service-network:
