@@ -23,11 +23,11 @@ fi
 
 
 
-if [ ! -z "${RSPAMD}" ]; then
-    echo "smtp >> Info: setting rspamd server ($RSPAMD)"
+if [ ! -z "${RSPAMD_SERVICE}" ]; then
+    echo "smtp >> Info: setting rspamd server ($RSPAMD_SERVICE)"
     postconf -e "milter_protocol = 6"
     postconf -e "milter_default_action = accept"
-    postconf -e "smtpd_milters = inet:$RSPAMD"
+    postconf -e "smtpd_milters = inet:$RSPAMD_SERVICE"
 fi
 
 # Allow local customization scripts that run on every startup
