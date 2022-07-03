@@ -32,6 +32,8 @@ services:
     ports: 
       - ${IPV4_NETWORK:?err}.1:80:11334
     environment:
+      - TZ=${TIMEZONE:-}
+      #
       - METRICS_GREYLIST=${METRICS_GREYLIST:-}
       - METRICS_ADD_HEADER=${METRICS_ADD_HEADER:-}
       - METRICS_REWRITE_SUBJECT=${METRICS_REWRITE_SUBJECT:-}
@@ -56,6 +58,8 @@ services:
     image: redis:6.2.7-bullseye
     container_name: rspamd-redis
     restart: always
+    environment:
+      - TZ=${TIMEZONE:-}
     dns:
       - ${DNS_SERVER1:-}
       - ${DNS_SERVER2:-}
@@ -67,6 +71,8 @@ services:
     image: clamav/clamav
     container_name: clam-av
     restart: always
+    environment:
+      - TZ=${TIMEZONE:-}
     dns:
       - ${DNS_SERVER1:-}
       - ${DNS_SERVER2:-}
